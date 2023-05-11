@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';
-import 'package:lines/chats.dart';
+import 'package:lines/sesion/registro_modulo.dart';
+
+import '../chat/chats.dart';
 
 class login_modulo extends StatelessWidget {
   login_modulo({super.key});
@@ -52,9 +52,10 @@ class login_modulo extends StatelessWidget {
               width: 175,
               child: ElevatedButton(
                   onPressed: () async {
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=>
-                      inicio_chats()
-                    ));
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => inicio_chats()));
                   },
                   style: ButtonStyle(
                     backgroundColor:
@@ -63,12 +64,23 @@ class login_modulo extends StatelessWidget {
                         MaterialStateProperty.all<Color>(Colors.white),
                     shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                       RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                            20)
-                      ),
+                          borderRadius: BorderRadius.circular(20)),
                     ),
                   ),
                   child: Text("Ingresar")),
+            ),
+            Container(
+              padding: EdgeInsets.only(top: 20),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => registro_modulo()));
+                },
+                child: Text(
+                  'Aún no te has registrado? Hazlo aquí',
+                  style: TextStyle(fontSize: 20),
+                ),
+              ),
             )
           ],
         ),
