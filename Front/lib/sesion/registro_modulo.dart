@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:lines/configuraciones/configuraciones.dart';
 
 class registro_modulo extends StatefulWidget {
   const registro_modulo({super.key});
@@ -12,8 +13,16 @@ class registro_modulo extends StatefulWidget {
 }
 
 class _registro_moduloState extends State<registro_modulo> {
+  //Base64
   String? imagenbase;
+  //Contraseñas (Ocultar)
   bool ocultar = true;
+
+  //Menu desplegable
+  String? _selectedItem;
+  List<String> _items = ['Policia', 'Administrativo', 'Gerente', 'Otros'];
+
+  //Controladores de texto
   TextEditingController numero_telefono = TextEditingController();
   TextEditingController nombre = TextEditingController();
   TextEditingController correo = TextEditingController();
@@ -42,28 +51,39 @@ class _registro_moduloState extends State<registro_modulo> {
   }
 
   Future<void> registrar_usuario() async {
-    print(numero_telefono.text);
-    print(nombre.text);
-    print(correo.text);
-    print(contrasena.text);
-    print(imagenbase);
     if (numero_telefono.text != "" &&
         nombre.text != "" &&
         correo.text != "" &&
         contrasena.text != "" &&
-        (imagenbase != "" && imagenbase != null)) {
-      var url = Uri.parse('localhost:5000/usuarios/registrar');
+        (imagenbase != "" && imagenbase != null) &&
+        (_selectedItem != null && _selectedItem != "")) {
+      int indice = _items.indexOf(_selectedItem.toString());
+      print(indice);
+      var url = Uri.parse('${configuraciones().ip}/usuarios/registrar');
       var data = {
-        "numero": numero_telefono,
+        "numero": numero_telefono.text,
         "nombre": nombre.text,
         "correo": correo.text,
         "contrasena": contrasena.text,
-        "cargo": 0
+        "imagen": imagenbase,
+        "cargo": indice
       };
+      print(data);
+      var cuerpo = json.encode(data);
+      var respuesta = await http.post(
+        url,
+        headers: {
+          'Content-Type':
+              'application/json', 
+        },
+        body: cuerpo,
+      );
+    print(respuesta);
     } else {
       print("No se logro");
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -107,6 +127,21 @@ class _registro_moduloState extends State<registro_modulo> {
                           });
                         },
                       ))),
+              DropdownButton<String>(
+                value: _selectedItem,
+                hint: Text('¿Qué tipo de persona es?'),
+                items: _items.map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedItem = newValue;
+                  });
+                },
+              ),
               ElevatedButton(
                 onPressed: () async => obtener_imagen(),
                 child: Text('Seleccionar imagen'),

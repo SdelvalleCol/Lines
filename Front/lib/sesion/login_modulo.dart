@@ -1,12 +1,34 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:lines/sesion/registro_modulo.dart';
-
 import '../chat/chats.dart';
+import '../configuraciones/configuraciones.dart';
+import 'package:http/http.dart' as http;
 
 class login_modulo extends StatelessWidget {
   login_modulo({super.key});
-  TextEditingController _controlador_correo = TextEditingController();
+  TextEditingController _controlador_telefono = TextEditingController();
   TextEditingController _controlador_password = TextEditingController();
+
+  Future<void> ingresar() async {
+    var url = Uri.parse('${configuraciones().ip}/usuarios/ingresar');
+    var data = {
+      "telefono": _controlador_telefono.text,
+      "contra": _controlador_password.text,
+    };
+    var cuerpo = json.encode(data);
+    var respuesta = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: cuerpo,
+    );
+    if (respuesta.statusCode == 200) {
+      var responseBody = json.decode(respuesta.body);
+      print(responseBody);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,10 +50,11 @@ class login_modulo extends StatelessWidget {
               child: Padding(
                 padding: EdgeInsets.only(bottom: 20),
                 child: TextField(
-                    controller: _controlador_correo,
+                    controller: _controlador_telefono,
+                    keyboardType: TextInputType.number,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
-                      labelText: 'Ingresa tu correo',
+                      labelText: 'Ingresa tu número de telefono',
                     )),
               ),
             ),
@@ -52,10 +75,7 @@ class login_modulo extends StatelessWidget {
               width: 175,
               child: ElevatedButton(
                   onPressed: () async {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => inicio_chats()));
+                    await ingresar();
                   },
                   style: ButtonStyle(
                     backgroundColor:
@@ -73,8 +93,10 @@ class login_modulo extends StatelessWidget {
               padding: EdgeInsets.only(top: 20),
               child: GestureDetector(
                 onTap: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => registro_modulo()));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => registro_modulo()));
                 },
                 child: Text(
                   'Aún no te has registrado? Hazlo aquí',
