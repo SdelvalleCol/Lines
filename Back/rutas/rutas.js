@@ -21,7 +21,7 @@ rutas.post('/usuarios/ingresar', async (req, res) => {
         const cuerpo = req.body
         pool.query(`SELECT * FROM PERSONAS WHERE numero_telefono = ${cuerpo.telefono}`, async (error1, resultado) => {
             if (error1) {
-                res.json({
+                res.status(404).json({
                     error: true,
                     descripcion: error1
                 })
@@ -33,27 +33,27 @@ rutas.post('/usuarios/ingresar', async (req, res) => {
                         numero: cuerpo.telefono
                     }
                     const token = jwt.sign(data, process.env.claveJWT)
-                    res.json(token)
+                    res.status(200).json(token)
                 } else {
-                    res.json({
+                    res.status(400).json({
                         error: true,
                         descripcion: "Contrasena incorrecta"
                     })
                 }
             } else if (resultado.length == 0) {
-                res.json({
+                res.status(400).json({
                     error: true,
                     descripcion: "No se encontro el usuario"
                 })
             } else {
-                res.json({
+                res.status(400).json({
                     error: true,
                     descripcion: "Usuario doblemente registrado (ERROR CRITICO)"
                 })
             }
         })
     } catch (e) {
-        res.json({
+        res.status(404).json({
             error: true,
             descripcion: e
         })
@@ -68,19 +68,19 @@ rutas.post('/usuarios/registrar', async (req, res) => {
         const hash = await bcrypt.hash(cuerpo.contrasena, saltRounds);
         pool.query(`INSERT INTO PERSONAS (numero_telefono,nombre,correo,contrasena,imagen,Cargo_idCargo) VALUES(${cuerpo.numero},'${cuerpo.nombre}','${cuerpo.correo}','${hash}','${cuerpo.imagen}',${cuerpo.cargo})`, (error, resultado) => {
             if (error) {
-                res.json({
+                res.status(404).json({
                     error: true,
                     descripcion: error
                 })
             } else {
-                res.json({
+                res.status(200).json({
                     error: false,
                     descripcion: "Se ingreso el usuario"
                 })
             }
         })
     } catch (e) {
-        res.json(res.json({
+        res.json(res.status(404).json({
             error: true,
             descripcion: e
         }))

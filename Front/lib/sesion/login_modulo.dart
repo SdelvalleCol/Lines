@@ -1,33 +1,64 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:lines/configuraciones/alertas.dart';
 import 'package:lines/sesion/registro_modulo.dart';
 import '../chat/chats.dart';
+import '../configuraciones/almacenamieto.dart';
 import '../configuraciones/configuraciones.dart';
 import 'package:http/http.dart' as http;
 
-class login_modulo extends StatelessWidget {
-  login_modulo({super.key});
+class login_modulo extends StatefulWidget {
+  const login_modulo({super.key});
+
+  @override
+  State<login_modulo> createState() => _login_moduloState();
+}
+
+class _login_moduloState extends State<login_modulo> {
   TextEditingController _controlador_telefono = TextEditingController();
   TextEditingController _controlador_password = TextEditingController();
+  final secureStorage = SecureStorage();
 
-  Future<void> ingresar() async {
-    var url = Uri.parse('${configuraciones().ip}/usuarios/ingresar');
-    var data = {
-      "telefono": _controlador_telefono.text,
-      "contra": _controlador_password.text,
-    };
-    var cuerpo = json.encode(data);
-    var respuesta = await http.post(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: cuerpo,
-    );
-    if (respuesta.statusCode == 200) {
-      var responseBody = json.decode(respuesta.body);
-      print(responseBody);
+  Future<void> ingresar(BuildContext context) async {
+    _controlador_telefono.text = "310788583";
+    _controlador_password.text = "contra";
+    if (_controlador_password.text != "" && _controlador_password.text != "") {
+      var url = Uri.parse('${configuraciones().ip}/usuarios/ingresar');
+      var data = {
+        "telefono": _controlador_telefono.text,
+        "contra": _controlador_password.text,
+      };
+      var cuerpo = json.encode(data);
+      var respuesta = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: cuerpo,
+      );
+      if (respuesta.statusCode != 404) {
+        var responseBody = json.decode(respuesta.body);
+        if (respuesta.statusCode == 200) {
+          await secureStorage.registrar(responseBody);
+          _controlador_telefono.text = "";
+          _controlador_password.text = "";
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => inicio_chats()));
+        } else {
+          alerta.show(context, responseBody["descripcion"]);
+        }
+      } else {
+        alerta.show(context, "Error en el servidor");
+      }
+    } else {
+      alerta.show(context, "Rellene los datos");
     }
+  }
+
+  @override
+  void initState() {
+
+    super.initState();
   }
 
   @override
@@ -75,7 +106,7 @@ class login_modulo extends StatelessWidget {
               width: 175,
               child: ElevatedButton(
                   onPressed: () async {
-                    await ingresar();
+                    await ingresar(context);
                   },
                   style: ButtonStyle(
                     backgroundColor:
