@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:lines/configuraciones/configuraciones.dart';
+import 'package:lines/configuraciones/convertidor.dart';
 
 class registro_modulo extends StatefulWidget {
   const registro_modulo({super.key});
@@ -28,18 +29,12 @@ class _registro_moduloState extends State<registro_modulo> {
   TextEditingController correo = TextEditingController();
   TextEditingController contrasena = TextEditingController();
 
-  Future<String> convbase64(File file) async {
-    List<int> fileBytes = await file.readAsBytes();
-    String base64Image = base64Encode(fileBytes);
-    return base64Image;
-  }
-
   Future<void> obtener_imagen() async {
     final picker = ImagePicker();
     final pickedImage = await picker.getImage(source: ImageSource.gallery);
     if (pickedImage != null) {
       File? imagen = File(pickedImage.path);
-      String subb4 = await convbase64(imagen!);
+      String subb4 = await convertidor().convbase64(imagen!);
       setState(() {
         imagenbase = subb4;
       });

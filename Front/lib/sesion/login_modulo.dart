@@ -19,6 +19,13 @@ class _login_moduloState extends State<login_modulo> {
   TextEditingController _controlador_password = TextEditingController();
   final secureStorage = SecureStorage();
 
+  Future<void> verificar(cadena) async {
+    if (cadena != "" && cadena != null) {
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => inicio_chats()));
+    }
+  }
+
   Future<void> ingresar(BuildContext context) async {
     _controlador_telefono.text = "310788583";
     _controlador_password.text = "contra";
@@ -57,8 +64,11 @@ class _login_moduloState extends State<login_modulo> {
 
   @override
   void initState() {
-
     super.initState();
+    WidgetsBinding.instance?.addPostFrameCallback((_) async {
+      String valor = await secureStorage.obtener();
+      verificar(valor);
+    });
   }
 
   @override

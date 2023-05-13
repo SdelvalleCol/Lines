@@ -1,17 +1,27 @@
+//Variables Ocultas
 require('dotenv').config();
+
+//Funcionalidades
 const fun = require('./funcionalidades');
+
+//Configuracion rutas
 const express = require('express');
-const pool = require('../BD/config');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 var rutas = express.Router();
 
-//BCRYPT 
+//BD
+const pool = require('../BD/config');
+
+//Encriptaciones
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 var saltRounds = parseInt(process.env.hash);
+
+//Otros
+const { promisify } = require('util');
 
 //Rutas
 //Prueba
-rutas.get('/',  async (req, res) => {
+rutas.get('/', async (req, res) => {
     res.send("Prueba")
 })
 
@@ -86,5 +96,69 @@ rutas.post('/usuarios/registrar', async (req, res) => {
         }))
     }
 })
+
+//Obtener chats 
+rutas.get('/usuarios/chat/:token', async (req, res) => {
+    try {
+        const cuerpo = req.params.token;
+        const token_dec = await promisify(jwt.verify)(cuerpo, process.env.claveJWT);
+        if (token_dec["error"] == false) {
+            pool.query(`SELECT p.imagen, c.idchats, p.numero_telefono, p.nombre
+                    FROM chats AS c
+                    JOIN chats_has_personas AS chp ON c.idchats = chp.chats_idchats
+                    JOIN personas AS p ON chp.personas_numero_telefono = p.numero_telefono
+                    WHERE c.idchats IN (
+                      SELECT chp.chats_idchats
+                      FROM chats_has_personas AS chp
+                      WHERE chp.personas_numero_telefono = '${token_dec["numero"]}'
+                    )
+                    AND p.numero_telefono <> '${token_dec["numero"]}'
+                    AND EXISTS (
+                      SELECT 1
+                      FROM chats_has_personas AS chp2
+                      WHERE chp2.chats_idchats = c.idchats
+                      AND chp2.personas_numero_telefono = '${token_dec["numero"]}'
+                    );`, (errors, resultado) => {
+                if (errors) {
+                    res.status(404).json({
+                        error: true,
+                        descripcion: errors
+                    });
+                } else {
+                    res.status(200).json(resultado);
+                }
+            });
+        }
+    } catch (e) {
+        res.status(404).json({
+            error: true,
+            descripcion: 'Token no válido'
+        });
+    }
+});
+
+//Obtener Datos Personales
+rutas.get('/usuarios/datos/personales/:token', async (req, res) => {
+    try {
+        const cuerpo = req.params.token;
+        const token_dec = await promisify(jwt.verify)(cuerpo, process.env.claveJWT);
+        pool.query(`SELECT numero_telefono , nombre , correo , imagen , Cargo_idCargo FROM PERSONAS WHERE numero_telefono = '${token_dec["numero"]}'`, (erors, resultado) => {
+            if (erors) {
+                res.status(404).json({
+                    error: true,
+                    descripcion: erors
+                });
+            } else {
+                res.status(200).json(resultado);
+            }
+        })
+    } catch (e) {
+        res.status(404).json({
+            error: true,
+            descripcion: 'Token no válido'
+        });
+    }
+})
+
 
 module.exports = rutas
