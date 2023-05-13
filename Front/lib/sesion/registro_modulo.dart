@@ -53,7 +53,6 @@ class _registro_moduloState extends State<registro_modulo> {
         (imagenbase != "" && imagenbase != null) &&
         (_selectedItem != null && _selectedItem != "")) {
       int indice = _items.indexOf(_selectedItem.toString());
-      print(indice);
       var url = Uri.parse('${configuraciones().ip}/usuarios/registrar');
       var data = {
         "numero": numero_telefono.text,
@@ -63,7 +62,6 @@ class _registro_moduloState extends State<registro_modulo> {
         "imagen": imagenbase,
         "cargo": indice
       };
-      print(data);
       var cuerpo = json.encode(data);
       var respuesta = await http.post(
         url,
@@ -74,6 +72,7 @@ class _registro_moduloState extends State<registro_modulo> {
         body: cuerpo,
       );
     print(respuesta);
+    Navigator.pop(context);
     } else {
       print("No se logro");
     }
