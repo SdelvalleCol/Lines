@@ -103,7 +103,7 @@ rutas.get('/usuarios/chat/:token', async (req, res) => {
         const cuerpo = req.params.token;
         const token_dec = await promisify(jwt.verify)(cuerpo, process.env.claveJWT);
         if (token_dec["error"] == false) {
-            pool.query(`SELECT p.imagen, c.idchats, p.numero_telefono, p.nombre
+            pool.query(`SELECT p.nombre, p.imagen, c.idchats, p.numero_telefono, p.correo
                     FROM chats AS c
                     JOIN chats_has_personas AS chp ON c.idchats = chp.chats_idchats
                     JOIN personas AS p ON chp.personas_numero_telefono = p.numero_telefono
@@ -160,5 +160,60 @@ rutas.get('/usuarios/datos/personales/:token', async (req, res) => {
     }
 })
 
+//Crear nuevo chat
+rutas.post('/usuarios/crear/chat', async (req, res) => {
+    try {
+        const cuerpo = req.body;
+        var numero1 = cuerpo.numero1
+        var numero2 = cuerpo.numero2
+        pool.query(`SELECT * FROM PERSONAS WHERE numero_telefono = ${numero1} or numero_telefono = ${numero2}`, (error0, resultado0) => {
+            if (error0) {
+                res.status(404).json({
+                    error: true,
+                    descripcion: error0
+                });
+            } else if (resultado0.length == 2) {
+                const fechaActual = new Date();
+                const fechaFormateada = fechaActual.toISOString();
+                pool.query(`INSERT INTO CHATS (CREACION) VALUES ('${fechaFormateada}')`, (error, resultado) => {
+                    if (error) {
+                        res.status(404).json({
+                            error: true,
+                            descripcion: error
+                        });
+                    } else {
+                        pool.query(`INSERT INTO chats_has_personas (CHATS_IDCHATS, PERSONAS_NUMERO_TELEFONO) VALUES 
+                        (${resultado.insertId}, ${numero1}),
+                        (${resultado.insertId}, ${numero2})`, (error2, resultado2) => {
+                            if (error2) {
+                                res.status(404).json({
+                                    error: true,
+                                    descripcion: error2
+                                });
+                            } else {
+                                res.json({
+                                    error: false,
+                                    descripcion: "Se ingreso el chat"
+                                })
+                            }
+                        })
+
+                    }
+                })
+            } else {
+                res.status(404).json({
+                    error: true,
+                    descripcion: "No se encontro a la persona"
+                });
+            }
+        })
+
+    } catch (e) {
+        res.status(404).json({
+            error: true,
+            descripcion: e
+        });
+    }
+})
 
 module.exports = rutas

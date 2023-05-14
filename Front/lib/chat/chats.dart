@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:lines/configuraciones/alertas.dart';
 import 'package:lines/configuraciones/almacenamieto.dart';
 import 'package:http/http.dart' as http;
 import 'package:lines/configuraciones/convertidor.dart';
@@ -59,20 +60,18 @@ class _inicio_chat extends State<inicio_chats> {
       return responseBody;
     } else {
       Navigator.pop(context);
-      List <dynamic> p = [];
-      return  p;
-
-      
+      List<dynamic> p = [];
+      return p;
     }
   }
 
-  Future<void> pintar_chats() async{
-    List <dynamic> p = await obtener_chats();
+  Future<void> pintar_chats() async {
+    List<dynamic> p = await obtener_chats();
     List<Widget> chats_aux = [];
     convertidor con = convertidor();
-    for(var i = 0 ; i < p.length ; i++){
-      imagen = con.convertToUint8List(p[i]["imagen"]);
-      Widget q = WidgetChat(logo: imagen, mensaje: "xd");
+    for (var i = 0; i < p.length; i++) {
+      Uint8List imagen_2 = con.convertToUint8List(p[i]["imagen"]);
+      Widget q = WidgetChat(logo: imagen_2, nombre: p[i]["nombre"] ,correo: p[i]["correo"],);
       chats_aux.add(q);
     }
     setState(() {
@@ -123,6 +122,16 @@ class _inicio_chat extends State<inicio_chats> {
                     children: chats,
                   ),
                 ),
+                Container(
+                  margin: EdgeInsets.only(right: 20.0, bottom: 20.0),
+                  alignment: Alignment.bottomRight,
+                  child: FloatingActionButton(
+                    onPressed: () {
+                      alerta.registro(context);
+                    },
+                    child: Icon(Icons.add),
+                  ),
+                ),
               ],
             ),
           ),
@@ -130,7 +139,13 @@ class _inicio_chat extends State<inicio_chats> {
           SafeArea(
               child: Column(
             children: [
-              load ? Image.memory(imagen,width: 300,height: 300,) : CircularProgressIndicator(),
+              load
+                  ? Image.memory(
+                      imagen,
+                      width: 300,
+                      height: 300,
+                    )
+                  : CircularProgressIndicator(),
               Text(numero),
               Text(correo),
               Text(nombre),

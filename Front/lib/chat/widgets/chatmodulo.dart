@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 
 class WidgetChat extends StatefulWidget {
   Uint8List logo;
-  String mensaje;
+  String nombre;
+  String correo;
   
-  WidgetChat({required this.logo, required this.mensaje});
+  WidgetChat({required this.logo, required this.nombre,required this.correo});
 
   @override
   State<WidgetChat> createState() => _WidgetChatState();
@@ -43,10 +44,10 @@ class _WidgetChatState extends State<WidgetChat> {
           children: [
             Container(
               margin: EdgeInsets.only(bottom: 10),
-              child: Text("Juan Chandlers"),
+              child: Text(widget.nombre),
             ),
             Container(
-              child: Text("Que pasa"),
+              child: Text(widget.correo),
             ),
           ],
         ),
