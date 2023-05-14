@@ -1,16 +1,18 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
-class widget_chat extends StatefulWidget {
-  String logo;
+class WidgetChat extends StatefulWidget {
+  Uint8List logo;
   String mensaje;
-  widget_chat({required this.logo, required this.mensaje});
+  
+  WidgetChat({required this.logo, required this.mensaje});
 
   @override
-  State<widget_chat> createState() => _widget_chatState();
+  State<WidgetChat> createState() => _WidgetChatState();
 }
 
-class _widget_chatState extends State<widget_chat> {
-  _widget_chatState();
+class _WidgetChatState extends State<WidgetChat> {
+  _WidgetChatState();
 
   @override
   Widget build(BuildContext context) {
@@ -23,33 +25,31 @@ class _widget_chatState extends State<widget_chat> {
             shape: BoxShape.circle,
             border: Border.all(
               color: Colors.black,
-              width:0.5,
+              width: 0.5,
             ),
           ),
           child: CircleAvatar(
             radius: 40.0,
-            child: Image.network(
+            foregroundColor: Colors.white,
+            backgroundColor: Colors.white,
+            backgroundImage: Image.memory(
               widget.logo,
               width: 75,
               height: 75,
-            ),
-            foregroundColor: Colors.white,
-            backgroundColor: Colors.white,
+            ).image,
           ),
         ),
         Column(
           children: [
             Container(
               margin: EdgeInsets.only(bottom: 10),
-              child: Text("Juan Chandlers"), 
+              child: Text("Juan Chandlers"),
             ),
             Container(
               child: Text("Que pasa"),
-            )
-           
-            
+            ),
           ],
-        )
+        ),
       ],
     );
   }

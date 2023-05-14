@@ -1,5 +1,4 @@
 import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:lines/configuraciones/almacenamieto.dart';
 import 'package:http/http.dart' as http;
@@ -19,27 +18,37 @@ class _inicio_chat extends State<inicio_chats> {
 
   final secureStorage = SecureStorage();
   bool load = false;
-  late Uint8List imagen; 
+
+  //Datos usuario
+  late Uint8List imagen;
+  String numero = "";
+  String nombre = "";
+  String correo = "";
+  String tipo = "";
 
   Future<void> Obtener_datos() async {
     String token = await secureStorage.obtener();
     if (token != null && token != "") {
-      var url = Uri.parse('${configuraciones().ip}/usuarios/datos/personales/${token}');
+      var url = Uri.parse(
+          '${configuraciones().ip}/usuarios/datos/personales/${token}');
       var respuesta = await http.get(url, headers: {
         'Content-Type': 'application/json',
       });
       var responseBody = json.decode(respuesta.body);
       setState(() {
         imagen = convertidor().convertToUint8List(responseBody[0]["imagen"]);
+        numero = responseBody[0]["numero_telefono"];
+        nombre = responseBody[0]["nombre"];
+        correo = responseBody[0]["correo"];
+        tipo = responseBody[0]["descripcion"];
         load = true;
       });
-      
     } else {
       Navigator.pop(context);
     }
   }
 
-  Future<void> obtener_chats() async {
+  Future<List<dynamic>> obtener_chats() async {
     String token = await secureStorage.obtener();
     if (token != null && token != "") {
       var url = Uri.parse('${configuraciones().ip}/usuarios/chat/${token}');
@@ -47,16 +56,34 @@ class _inicio_chat extends State<inicio_chats> {
         'Content-Type': 'application/json',
       });
       var responseBody = json.decode(respuesta.body);
-      print(responseBody);
+      return responseBody;
     } else {
       Navigator.pop(context);
+      List <dynamic> p = [];
+      return  p;
+
+      
     }
+  }
+
+  Future<void> pintar_chats() async{
+    List <dynamic> p = await obtener_chats();
+    List<Widget> chats_aux = [];
+    convertidor con = convertidor();
+    for(var i = 0 ; i < p.length ; i++){
+      imagen = con.convertToUint8List(p[i]["imagen"]);
+      Widget q = WidgetChat(logo: imagen, mensaje: "xd");
+      chats_aux.add(q);
+    }
+    setState(() {
+      this.chats = chats_aux;
+    });
   }
 
   @override
   void initState() {
     Obtener_datos();
-    obtener_chats();
+    pintar_chats();
     super.initState();
   }
 
@@ -82,7 +109,7 @@ class _inicio_chat extends State<inicio_chats> {
                   color: Colors.purple,
                   padding: EdgeInsets.only(bottom: 20, left: 10),
                   child: Text(
-                    'Bienvenido @Yiyu',
+                    'Bienvenido ${nombre}',
                     textAlign: TextAlign.left,
                     style: TextStyle(
                       color: Colors.white,
@@ -101,10 +128,15 @@ class _inicio_chat extends State<inicio_chats> {
           ),
           // Contenido de la pestaña "Profile"
           SafeArea(
-            child: load
-                ? Image.memory(imagen)
-                : CircularProgressIndicator(), 
-          ),
+              child: Column(
+            children: [
+              load ? Image.memory(imagen,width: 300,height: 300,) : CircularProgressIndicator(),
+              Text(numero),
+              Text(correo),
+              Text(nombre),
+              Text(tipo)
+            ],
+          )),
         ],
       ),
       bottomNavigationBar: Row(

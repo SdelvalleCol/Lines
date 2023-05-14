@@ -142,7 +142,7 @@ rutas.get('/usuarios/datos/personales/:token', async (req, res) => {
     try {
         const cuerpo = req.params.token;
         const token_dec = await promisify(jwt.verify)(cuerpo, process.env.claveJWT);
-        pool.query(`SELECT numero_telefono , nombre , correo , imagen , Cargo_idCargo FROM PERSONAS WHERE numero_telefono = '${token_dec["numero"]}'`, (erors, resultado) => {
+        pool.query(`SELECT numero_telefono , nombre , correo , imagen , descripcion FROM PERSONAS , CARGO WHERE numero_telefono = '${token_dec["numero"]}' AND Cargo_idCargo = idCargo `, (erors, resultado) => {
             if (erors) {
                 res.status(404).json({
                     error: true,

@@ -71,7 +71,8 @@ class _registro_moduloState extends State<registro_modulo> {
         },
         body: cuerpo,
       );
-    print(respuesta);
+   var responseBody = json.decode(respuesta.body);
+   print(responseBody);
     Navigator.pop(context);
     } else {
       print("No se logro");
