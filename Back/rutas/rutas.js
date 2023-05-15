@@ -166,48 +166,115 @@ rutas.post('/usuarios/crear/chat', async (req, res) => {
         const cuerpo = req.body;
         var numero1 = cuerpo.numero1
         var numero2 = cuerpo.numero2
-        pool.query(`SELECT * FROM PERSONAS WHERE numero_telefono = ${numero1} or numero_telefono = ${numero2}`, (error0, resultado0) => {
-            if (error0) {
-                res.status(404).json({
-                    error: true,
-                    descripcion: error0
-                });
-            } else if (resultado0.length == 2) {
-                const fechaActual = new Date();
-                const fechaFormateada = fechaActual.toISOString();
-                pool.query(`INSERT INTO CHATS (CREACION) VALUES ('${fechaFormateada}')`, (error, resultado) => {
-                    if (error) {
-                        res.status(404).json({
-                            error: true,
-                            descripcion: error
-                        });
-                    } else {
-                        pool.query(`INSERT INTO chats_has_personas (CHATS_IDCHATS, PERSONAS_NUMERO_TELEFONO) VALUES 
-                        (${resultado.insertId}, ${numero1}),
-                        (${resultado.insertId}, ${numero2})`, (error2, resultado2) => {
-                            if (error2) {
+        pool.query(`SELECT COUNT(*) AS cantidad_relaciones FROM chats_has_personas cp1 JOIN chats_has_personas cp2 ON cp1.chats_idchats = cp2.chats_idchats WHERE cp1.personas_numero_telefono = ${numero1} AND cp2.personas_numero_telefono = ${numero2}`,
+            (rs, rst) => {
+                if (rs) {
+                    res.status(404).json({
+                        error: true,
+                        descripcion: rs
+                    })
+                } else {
+                    if (rst[0]["cantidad_relaciones"] < 1) {
+                        pool.query(`SELECT * FROM PERSONAS WHERE numero_telefono = ${numero1} or numero_telefono = ${numero2}`, (error0, resultado0) => {
+                            if (error0) {
                                 res.status(404).json({
                                     error: true,
-                                    descripcion: error2
+                                    descripcion: error0
                                 });
-                            } else {
-                                res.json({
-                                    error: false,
-                                    descripcion: "Se ingreso el chat"
+                            } else if (resultado0.length == 2) {
+                                const fechaActual = new Date();
+                                const fechaFormateada = fechaActual.toISOString();
+                                pool.query(`INSERT INTO CHATS (CREACION) VALUES ('${fechaFormateada}')`, (error, resultado) => {
+                                    if (error) {
+                                        res.status(404).json({
+                                            error: true,
+                                            descripcion: error
+                                        });
+                                    } else {
+                                        pool.query(`INSERT INTO chats_has_personas (CHATS_IDCHATS, PERSONAS_NUMERO_TELEFONO) VALUES 
+                                    (${resultado.insertId}, ${numero1}),
+                                    (${resultado.insertId}, ${numero2})`, (error2, resultado2) => {
+                                            if (error2) {
+                                                res.status(404).json({
+                                                    error: true,
+                                                    descripcion: error2
+                                                });
+                                            } else {
+                                                res.json({
+                                                    error: false,
+                                                    descripcion: "Se ingreso el chat"
+                                                })
+                                            }
+                                        })
+
+                                    }
                                 })
+                            } else {
+                                res.status(404).json({
+                                    error: true,
+                                    descripcion: "No se encontro a la persona"
+                                });
                             }
                         })
-
+                    } else {
+                        res.status(404).json({
+                            error: true,
+                            descripcion: "Chat duplicado"
+                        })
                     }
-                })
-            } else {
+                }
+            })
+    } catch (e) {
+        res.status(404).json({
+            error: true,
+            descripcion: e
+        });
+    }
+})
+
+//Buscar mensajes por chat 
+rutas.get('/chats/datos/:chat', async (req, res) => {
+    try {
+        const cuerpo = req.params.chat;
+        pool.query(`SELECT chats_idchats ,descripcion , imagen, hora FROM MENSAJES, PERSONAS WHERE CHATS_IDCHATS = ${cuerpo} AND numero_telefono = personas_numero_telefono`,(error,resultado)=>{
+            if(error){
                 res.status(404).json({
                     error: true,
-                    descripcion: "No se encontro a la persona"
+                    descripcion: e
+                });
+            }else{
+                res.json(resultado);
+            }
+        })
+        
+    } catch (e) {
+        res.status(404).json({
+            error: true,
+            descripcion: e
+        });
+    }
+})
+
+//Ingresar mensaje 
+rutas.post('/chats/ingresar/mensaje', async (req, res) => {
+    try {
+        var cuerpo = req.body
+        const fechaActual = new Date();
+        const fechaFormateada = fechaActual.toISOString();
+        pool.query(`INSERT INTO MENSAJES(DESCRIPCION,HORA,CHATS_IDCHATS,PERSONAS_NUMERO_TELEFONO) VALUES('${cuerpo.descripcion}','${fechaFormateada}',${cuerpo.id_chat},'${cuerpo.numero}')`,(error,resultado)=>{
+            if(error){
+                res.status(404).json({
+                    error: true,
+                    descripcion: error
+                });
+            }else{
+                res.json({
+                    error: false,
+                    descripcion: "Se ingreso el mensaje"
                 });
             }
         })
-
+        
     } catch (e) {
         res.status(404).json({
             error: true,

@@ -83,6 +83,7 @@ class _registro_moduloState extends State<registro_modulo> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
         body: Center(
           child: Column(

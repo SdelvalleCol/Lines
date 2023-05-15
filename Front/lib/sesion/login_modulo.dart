@@ -27,8 +27,8 @@ class _login_moduloState extends State<login_modulo> {
   }
 
   Future<void> ingresar(BuildContext context) async {
-    _controlador_telefono.text = "3108805773";
-    _controlador_password.text = "hola2";
+    _controlador_telefono.text = "3108805778";
+    _controlador_password.text = "hola";
     if (_controlador_password.text != "" && _controlador_password.text != "") {
       var url = Uri.parse('${configuraciones().ip}/usuarios/ingresar');
       var data = {

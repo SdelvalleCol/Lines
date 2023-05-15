@@ -1,12 +1,15 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-
+import 'package:lines/chat/vistamensaje.dart';
 class WidgetChat extends StatefulWidget {
   Uint8List logo;
   String nombre;
   String correo;
+  int id_chat;
+  String numero1;
+  String numero2;
   
-  WidgetChat({required this.logo, required this.nombre,required this.correo});
+  WidgetChat({required this.logo, required this.nombre,required this.correo,required this.id_chat,required this.numero1,required this.numero2});
 
   @override
   State<WidgetChat> createState() => _WidgetChatState();
@@ -40,7 +43,8 @@ class _WidgetChatState extends State<WidgetChat> {
             ).image,
           ),
         ),
-        Column(
+        GestureDetector(
+          child: Column(
           children: [
             Container(
               margin: EdgeInsets.only(bottom: 10),
@@ -51,6 +55,12 @@ class _WidgetChatState extends State<WidgetChat> {
             ),
           ],
         ),
+          onTap: (){
+                      Navigator.push(
+              context, MaterialPageRoute(builder: (context) => vista_mensaje(id_chat: widget.id_chat,numero1: widget.numero1,numero2: widget.numero2,)));
+          },
+        )
+        
       ],
     );
   }
