@@ -71,6 +71,88 @@ rutas.post('/usuarios/ingresar', async (req, res) => {
 
 })
 
+//Insertar Token 
+rutas.post('/usuario/registro/token', async (req, res) => {
+    try {
+        const cuerpo = req.body;
+        pool.query(`UPDATE personas
+        SET token = '${cuerpo.token}'
+        WHERE numero_telefono = '${cuerpo.numero}'`,(error,resultado)=>{
+            if(error){
+                res.status(404).json({
+                    error: true,
+                    descripcion: error
+                })
+            }else{
+                res.json({
+                    error: false,
+                    descripcion: "Se actualizo el token"
+                })
+            }
+        })
+    } catch (e) {
+        res.status(404).json({
+            error: true,
+            descripcion: e
+        })
+    }
+})
+
+
+//Borrar Token 
+rutas.post('/usuario/borrar/token', async (req, res) => {
+    try {
+        const cuerpo = req.body;
+        pool.query(`UPDATE personas
+        SET token = null
+        WHERE numero_telefono = '${cuerpo.numero}'`,(error,resultado)=>{
+            if(error){
+                res.status(404).json({
+                    error: true,
+                    descripcion: error
+                })
+            }else{
+                res.json({
+                    error: false,
+                    descripcion: "Se borro el token"
+                })
+            }
+        })
+    } catch (e) {
+        res.status(404).json({
+            error: true,
+            descripcion: e
+        })
+    }
+})
+
+//Obtener Token por persona
+rutas.get('/persona/token/:numero', async (req, res) => {
+    try {
+        const cuerpo = req.params.numero;
+        pool.query(`SELECT TOKEN FROM PERSONAS WHERE NUMERO_TELEFONO = ${cuerpo}`,(error,resultado)=>{
+            if(error){
+                res.status(404).json({
+                    error: true,
+                    descripcion: error
+                }) 
+            }else if(resultado[0]["TOKEN"]==null){
+                res.status(404).json({
+                    error: true,
+                    descripcion: "No tiene token"
+                })
+            }else{
+                res.json(resultado[0]["TOKEN"])
+            }
+        })
+    } catch (e) {
+        res.status(404).json({
+            error: true,
+            descripcion: e
+        })
+    }
+})
+
 //Registrar usuario
 rutas.post('/usuarios/registrar', async (req, res) => {
     try {
@@ -236,17 +318,17 @@ rutas.post('/usuarios/crear/chat', async (req, res) => {
 rutas.get('/chats/datos/:chat', async (req, res) => {
     try {
         const cuerpo = req.params.chat;
-        pool.query(`SELECT chats_idchats ,descripcion , imagen, hora FROM MENSAJES, PERSONAS WHERE CHATS_IDCHATS = ${cuerpo} AND numero_telefono = personas_numero_telefono`,(error,resultado)=>{
-            if(error){
+        pool.query(`SELECT chats_idchats ,descripcion , imagen, hora FROM MENSAJES, PERSONAS WHERE CHATS_IDCHATS = ${cuerpo} AND numero_telefono = personas_numero_telefono`, (error, resultado) => {
+            if (error) {
                 res.status(404).json({
                     error: true,
                     descripcion: e
                 });
-            }else{
+            } else {
                 res.json(resultado);
             }
         })
-        
+
     } catch (e) {
         res.status(404).json({
             error: true,
@@ -261,20 +343,20 @@ rutas.post('/chats/ingresar/mensaje', async (req, res) => {
         var cuerpo = req.body
         const fechaActual = new Date();
         const fechaFormateada = fechaActual.toISOString();
-        pool.query(`INSERT INTO MENSAJES(DESCRIPCION,HORA,CHATS_IDCHATS,PERSONAS_NUMERO_TELEFONO) VALUES('${cuerpo.descripcion}','${fechaFormateada}',${cuerpo.id_chat},'${cuerpo.numero}')`,(error,resultado)=>{
-            if(error){
+        pool.query(`INSERT INTO MENSAJES(DESCRIPCION,HORA,CHATS_IDCHATS,PERSONAS_NUMERO_TELEFONO) VALUES('${cuerpo.descripcion}','${fechaFormateada}',${cuerpo.id_chat},'${cuerpo.numero}')`, (error, resultado) => {
+            if (error) {
                 res.status(404).json({
                     error: true,
                     descripcion: error
                 });
-            }else{
+            } else {
                 res.json({
                     error: false,
                     descripcion: "Se ingreso el mensaje"
                 });
             }
         })
-        
+
     } catch (e) {
         res.status(404).json({
             error: true,

@@ -6,6 +6,7 @@ import '../chat/chats.dart';
 import '../configuraciones/almacenamieto.dart';
 import '../configuraciones/configuraciones.dart';
 import 'package:http/http.dart' as http;
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class login_modulo extends StatefulWidget {
   const login_modulo({super.key});
@@ -24,6 +25,12 @@ class _login_moduloState extends State<login_modulo> {
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => inicio_chats()));
     }
+  }
+
+  Future<String> obtenerToken() async {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    String? token = await messaging.getToken();
+    return token.toString();
   }
 
   Future<void> ingresar(BuildContext context) async {
@@ -46,11 +53,28 @@ class _login_moduloState extends State<login_modulo> {
       if (respuesta.statusCode != 404) {
         var responseBody = json.decode(respuesta.body);
         if (respuesta.statusCode == 200) {
-          await secureStorage.registrar(responseBody);
-          _controlador_telefono.text = "";
-          _controlador_password.text = "";
-          Navigator.push(
-              context, MaterialPageRoute(builder: (context) => inicio_chats()));
+          //Actualizar el Token
+          var token_ss = await obtenerToken();
+          var url2 =
+              Uri.parse('${configuraciones().ip}/usuario/registro/token');
+          var data2 = {"numero": _controlador_telefono.text, "token": token_ss};
+          var cuerpo2 = json.encode(data2);
+          var respuesta2 = await http.post(
+            url2,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: cuerpo2,
+          );
+          if (respuesta2.statusCode == 200) {
+            await secureStorage.registrar(responseBody);
+            _controlador_telefono.text = "";
+            _controlador_password.text = "";
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => inicio_chats()));
+          } else {
+            alerta.show(context, "Algo ha salido mal");
+          }
         } else {
           alerta.show(context, responseBody["descripcion"]);
         }
@@ -65,6 +89,7 @@ class _login_moduloState extends State<login_modulo> {
   @override
   void initState() {
     super.initState();
+    obtenerToken();
     WidgetsBinding.instance?.addPostFrameCallback((_) async {
       String valor = await secureStorage.obtener();
       verificar(valor);

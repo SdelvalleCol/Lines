@@ -20,6 +20,27 @@ class _vista_mensajeState extends State<vista_mensaje> {
   List<Widget> mensajes = [];
   TextEditingController _controlador_mensaje = TextEditingController();
 
+  void sendNotification(String deviceToken, String titulo , String autor, String mensaje) async {
+    final url = Uri.parse('https://fcm.googleapis.com/fcm/send');
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization':
+          'key=AAAA8bzk_vA:APA91bFKyDHeTw0Piuka7hXFLZMR2G4VYRMLnoujVdJl4Glz7RB8PJXbP6vbPLdaSv8RqbdyW4MkLfK58dfDX5m3x4TCAljq0ti4TaB4F32P-5-qzWdZhGfOyvRQmqp5Mvb8bpbvCHDC'
+    };
+    final body = jsonEncode({
+      "to":
+          deviceToken,
+      "notification": {"title": titulo, "body": autor + " te ha mandado: " + mensaje}
+    });
+    final response = await http.post(url, headers: headers, body: body);
+    if (response.statusCode == 200) {
+      print('Notificación enviada correctamente');
+    } else {
+      print(
+          'Error al enviar la notificación. Código de respuesta: ${response.statusCode}');
+    }
+  }
+
   Future<void> obtener_mensajes() async {
     var url =
         Uri.parse('${configuraciones().ip}/chats/datos/${widget.id_chat}');
@@ -33,7 +54,6 @@ class _vista_mensajeState extends State<vista_mensaje> {
     if (respuesta.statusCode == 200) {
       List<Widget> mensajes_aux = [];
       for (var i = 0; i < response.length; i++) {
-        print(response[i]["hora"]);
         Widget q = ChatMessageWidget(
           message: response[i]["descripcion"],
           date: response[i]["hora"],
@@ -61,8 +81,20 @@ class _vista_mensajeState extends State<vista_mensaje> {
         },
         body: cuerpo);
     if (respuesta.statusCode == 200) {
-      var response = json.decode(respuesta.body);
-      print(response);
+      var url_token =
+          Uri.parse('${configuraciones().ip}/persona/token/${widget.numero2}');
+      var respuestatoken = await http.get(
+        url_token,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+      if (respuestatoken.statusCode == 200) {
+        var response_token = json.decode(respuestatoken.body);
+        sendNotification(response_token,"Has recibido un mensaje" , widget.numero2 , _controlador_mensaje.text);
+      } else {
+        alerta.show(context, "Algo ha salido mal");
+      }
     }
   }
 
@@ -116,7 +148,12 @@ class _vista_mensajeState extends State<vista_mensaje> {
                         ingresar_mensajes();
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (context) => vista_mensaje(id_chat: widget.id_chat,numero1: widget.numero1,numero2: widget.numero2,)),
+                          MaterialPageRoute(
+                              builder: (context) => vista_mensaje(
+                                    id_chat: widget.id_chat,
+                                    numero1: widget.numero1,
+                                    numero2: widget.numero2,
+                                  )),
                         );
                       } else {
                         alerta.show(context, "Ingrese un mensaje");

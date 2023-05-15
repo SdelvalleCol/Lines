@@ -83,7 +83,7 @@ class _inicio_chat extends State<inicio_chats> {
         logo: imagen_2,
         nombre: p[i]["nombre"],
         correo: p[i]["correo"],
-        id_chat:p[i]["idchats"],
+        id_chat: p[i]["idchats"],
         numero1: numero,
         numero2: p[i]["numero_telefono"],
       );
@@ -338,7 +338,23 @@ class _inicio_chat extends State<inicio_chats> {
             icon: Icon(Icons.exit_to_app),
             onPressed: () async {
               await secureStorage.eliminar();
-              Navigator.pop(context);
+
+              var url2 =
+                  Uri.parse('${configuraciones().ip}/usuario/borrar/token');
+              var data2 = {"numero": this.numero};
+              var cuerpo2 = json.encode(data2);
+              var respuesta2 = await http.post(
+                url2,
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: cuerpo2,
+              );
+              if (respuesta2.statusCode == 200) {
+                Navigator.pop(context);
+              } else {
+                alerta.show(context, "Algo ha salido mal");
+              }
             },
           ),
         ],
